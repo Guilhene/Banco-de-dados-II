@@ -1,8 +1,11 @@
--- Marco 2 — 02_indices_dbeaver.sql
--- Versão SEM comandos do psql (\echo, \set, \o...), para rodar no DBeaver/pgAdmin.
--- DBeaver: abra no editor SQL e use 'Executar script' (Alt+X), NÃO Ctrl+Enter.
--- Cada EXPLAIN aparece em uma aba de resultado; as linhas 'etapa' marcam ANTES/DEPOIS.
-
+-- Marco 2 — 02_indices.sql
+--
+-- ORDEM DE EXECUÇÃO (sempre na base "matricula"):
+--   1) Marco_01.sql   -> cria as tabelas (sem a linha CREATE DATABASE)
+--   2) 00_dados.sql   -> insere os dados de teste (só em banco vazio)
+--   3) 01_views.sql   -> views + materialized view
+--   4) 02_indices.sql -> índices + EXPLAIN
+--   5) 03_transacoes.sql -> anomalia e correções (independe do passo 2)
 -- =====================================================================
 -- Marco 2 — 02_indices.sql
 -- 5 índices (1 parcial, 1 composto, 1 por expressão), cada um com:
