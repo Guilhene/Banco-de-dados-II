@@ -1,7 +1,6 @@
 # Marco 2 — Views, Índices e Transações
 
 **Banco de Dados II (CCO072) · IESB 2026/2 · Projeto Acadêmico**
-Integrantes: _(preencher)_
 
 Este diretório contém tudo o que o Marco 2 pede, construído sobre o esquema do Marco 1 (`Marco_01.sql`):
 
