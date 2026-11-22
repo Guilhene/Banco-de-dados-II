@@ -1,150 +1,149 @@
--- =========================
--- 1. CRIAÇÃO DO BANCO DE DADOS
--- =========================
-CREATE DATABASE Projeto_universidade;
+-- =====================================================================
+-- banco_de_dado.sql
+-- Criação das tabelas da universidade
 
--- =========================
--- ENDERECO
--- =========================
-CREATE TABLE tb_endereco (
-    id_endereco SERIAL PRIMARY KEY,
-    estado_endereco VARCHAR(50) NOT NULL,
-    cidade_endereco VARCHAR(100) NOT NULL,
-    pais_endereco VARCHAR(50) DEFAULT 'Brasil',
-    cnpj_endereco VARCHAR(20) UNIQUE
+create table tb_disciplina(
+	id_disciplina integer primary key,
+	codigo_disciplina VARCHAR(30) not null,
+	nome_disciplina VARCHAR(120) not null,
+	hora_pratica_disciplina interval,
+	hora_teorica_disciplina interval
 );
 
--- =========================
--- CAMPUS
--- =========================
-CREATE TABLE tb_campus (
-    id_campus SERIAL PRIMARY KEY,
-    nome_campus VARCHAR(100) NOT NULL,
-    id_endereco INT NOT NULL,
-    FOREIGN KEY (id_endereco) REFERENCES tb_endereco(id_endereco)
+create table tb_endereco_aluno(
+	id_endereco_aluno integer primary key,
+	estado VARCHAR(60) not null,
+	cidade VARCHAR(60) not null,
+	cep VARCHAR(9) not null,
+	logradouro TEXT not null                     -- corrigido: longradouro
 );
 
--- =========================
--- CURSO
--- =========================
-CREATE TABLE tb_curso (
-    id_curso SERIAL PRIMARY KEY,
-    nome_curso VARCHAR(100) NOT NULL,
-    grau_curso VARCHAR(50),
-    chtotal_curso INT CHECK (chtotal_curso > 0),
-    id_campus INT NOT NULL,
-    FOREIGN KEY (id_campus) REFERENCES tb_campus(id_campus)
+create table tb_endereco_campus(
+	id_endereco_campus integer primary key,
+	estado VARCHAR(60) not null,
+	cidade VARCHAR(60) not null,
+	cep VARCHAR(9) not null,
+	logradouro TEXT not null                     -- corrigido: longradouro
 );
 
--- =========================
--- PROFESSOR
--- =========================
-CREATE TABLE tb_professor (
-    id_professor SERIAL PRIMARY KEY,
-    nome_professor VARCHAR(100) NOT NULL,
-    cpf_professor VARCHAR(14) UNIQUE NOT NULL,
-    email_professor VARCHAR(100) UNIQUE NOT NULL,
-    telefone_professor VARCHAR(20),
-    data_admissao_professor DATE,
-    titulacao_professor VARCHAR(50),
-    id_campus INT,
-    FOREIGN KEY (id_campus) REFERENCES tb_campus(id_campus)
+create table tb_professor(
+	id_professor integer primary key,
+	nome_professor VARCHAR(120) not null,
+	cpf_professor VARCHAR(11),
+	email_professor varchar(150),
+	registro_funcional VARCHAR(20) not null,    
+	constraint uq_professor_cpf      unique (cpf_professor),
+	constraint uq_professor_email    unique (email_professor),
+	constraint uq_professor_registro unique (registro_funcional),
+	constraint ck_professor_cpf      check (cpf_professor ~ '^[0-9]{11}$')
 );
 
--- =========================
--- DISCIPLINA
--- =========================
-CREATE TABLE tb_disciplina (
-    id_disciplina SERIAL PRIMARY KEY,
-    codigo_disciplina VARCHAR(20) UNIQUE NOT NULL,
-    nome_disciplina VARCHAR(100) NOT NULL,
-    chpratica_disciplina INT CHECK (chpratica_disciplina >= 0),
-    chteorica_disciplina INT CHECK (chteorica_disciplina >= 0)
+create table tb_horario(
+	id_horario integer primary key,
+	semana_horario text not null,
+	hora_inicial time not null,
+	hora_final time not null                     -- corrigido: hora_fina
 );
 
--- =========================
--- REQUISITO
--- =========================
-CREATE TABLE tb_requisito (
-    id_requisito SERIAL PRIMARY KEY,
-    id_disciplina INT NOT NULL,
-    id_disciplina_requisito INT NOT NULL,
-    FOREIGN KEY (id_disciplina) REFERENCES tb_disciplina(id_disciplina),
-    FOREIGN KEY (id_disciplina_requisito) REFERENCES tb_disciplina(id_disciplina),
-    UNIQUE (id_disciplina, id_disciplina_requisito)
+create table tb_periodo_letivo(
+	id_periodo_letivo integer primary key,
+	semestre_periodo_letivo integer not null,
+	ano_periodo_letivo integer not null,         -- corrigido: era DATE, agora inteiro (ex.: 2026)
+	inicio_periodo_letivo date not null,
+	fim_periodo_letivo date not null
 );
 
--- =========================
--- TURMA
--- =========================
-CREATE TABLE tb_turma (
-    id_turma SERIAL PRIMARY KEY,
-    codigo_turma VARCHAR(20),
-    turno_turma VARCHAR(20),
-    vagas_turma INT CHECK (vagas_turma > 0),
-    id_disciplina INT NOT NULL,
-    id_professor INT NOT NULL,
-    FOREIGN KEY (id_disciplina) REFERENCES tb_disciplina(id_disciplina),
-    FOREIGN KEY (id_professor) REFERENCES tb_professor(id_professor)
+create table tb_requisito(
+	id_requisito integer primary key,
+	id_disciplina integer references tb_disciplina(id_disciplina),
+	requisito_diciplina VARCHAR(70)
 );
 
--- =========================
--- HORARIO
--- =========================
-CREATE TABLE tb_horario (
-    id_horario SERIAL PRIMARY KEY,
-    dia_semana_horario VARCHAR(20),
-    hora_inicio_horario TIME,
-    hora_fim_horario TIME
+create table tb_aluno(
+	id_aluno integer primary key,
+	id_endereco_aluno integer references tb_endereco_aluno (id_endereco_aluno),
+	nome_aluno VARCHAR(120) not null,
+	cpf_aluno VARCHAR(11) not null,
+	email_aluno VARCHAR(150) not null,
+	nascimento_aluno DATE,                       -- corrigido: nacimento_aluno
+	constraint uq_aluno_cpf   unique (cpf_aluno),
+	constraint uq_aluno_email unique (email_aluno),
+	constraint ck_aluno_cpf   check (cpf_aluno ~ '^[0-9]{11}$')
 );
 
--- RELAÇÃO N:N
-CREATE TABLE tb_turma_horario (
-    id_turma INT,
-    id_horario INT,
-    PRIMARY KEY (id_turma, id_horario),
-    FOREIGN KEY (id_turma) REFERENCES tb_turma(id_turma),
-    FOREIGN KEY (id_horario) REFERENCES tb_horario(id_horario)
+create table tb_campus(
+	id_campus integer primary key,
+	id_endereco_campus integer references tb_endereco_campus(id_endereco_campus),
+	nome_campus VARCHAR(120) not null,
+	cnpj_endereco varchar(14) unique not null
 );
 
--- =========================
--- ALUNO
--- =========================
-CREATE TABLE tb_aluno (
-    id_aluno SERIAL PRIMARY KEY,
-    nome_aluno VARCHAR(100) NOT NULL,
-    cpf_aluno VARCHAR(14) UNIQUE,
-    email_aluno VARCHAR(100) UNIQUE,
-    nascimento_aluno DATE,
-    ingresso_aluno DATE,
-    status_aluno VARCHAR(20),
-    id_curso INT,
-    FOREIGN KEY (id_curso) REFERENCES tb_curso(id_curso)
+create table tb_calendario(
+	id_calendario integer primary key,
+	id_campus integer references tb_campus(id_campus),
+	ano_calendario integer,
+	semestre_calendario text,
+	data_inicial date,                           -- corrigido: data_inical
+	data_fim date,
+	descricao text
 );
 
--- =========================
--- MATRICULA
--- =========================
-CREATE TABLE tb_matricula (
-    id_matricula SERIAL PRIMARY KEY,
-    datainicio_matricula DATE DEFAULT CURRENT_DATE,
-    status_matricula VARCHAR(20),
-    id_aluno INT NOT NULL,
-    id_turma INT NOT NULL,
-    FOREIGN KEY (id_aluno) REFERENCES tb_aluno(id_aluno),
-    FOREIGN KEY (id_turma) REFERENCES tb_turma(id_turma)
+create table tb_eventos_calendario(
+	id_eventos_calendario integer primary key,   -- corrigido: id_envetos_calendario
+	id_calendario integer references tb_calendario(id_calendario),
+	titulo_evento VARCHAR(70),
+	descricao_evento VARCHAR(120),
+	data_inicial_evento date,
+	data_fim_evento date,
+	tipo_evento_feriado VARCHAR(60)
 );
 
--- =========================
--- NOTA
--- =========================
-CREATE TABLE tb_nota (
-    id_nota SERIAL PRIMARY KEY,
-    prova1_nota NUMERIC(5,2),
-    prova2_nota NUMERIC(5,2),
-    prova3_nota NUMERIC(5,2),
-    frequencia_nota NUMERIC(5,2),
-    situacao_nota VARCHAR(20),
-    id_matricula INT UNIQUE,
-    FOREIGN KEY (id_matricula) REFERENCES tb_matricula(id_matricula)
+create table tb_sala(
+	id_sala integer primary key,
+	id_campus integer references tb_campus(id_campus),
+	tipo_sala VARCHAR(60) not NULL,
+	capacidade_sala integer not null,
+	codigo_sala VARCHAR(30) not null,
+	andar_sala VARCHAR(15),
+	unique(codigo_sala)
 );
+
+create table tb_curso(
+	id_curso integer primary key,
+	id_campus integer references tb_campus(id_campus),
+	nome_curso text not null,                    -- corrigido: nome_cusro
+	grau_curso TEXT not null
+);
+
+create table tb_curso_disciplina(
+	id_curso integer references tb_curso(id_curso),
+	id_disciplina integer references  tb_disciplina(id_disciplina ),
+	carga_horario_total_curso integer not null
+);
+
+create table tb_matricula(
+	id_matricula integer primary key,
+	id_aluno integer references tb_aluno(id_aluno),
+	id_curso integer references tb_curso(id_curso),
+	Data_inicio_matricula date not null,
+	status_matricula VARCHAR(60)
+);
+
+
+create table tb_turma(
+	id_turma integer primary key,
+	id_sala integer references tb_sala(id_sala),
+	id_periodo_letivo integer references tb_periodo_letivo(id_periodo_letivo),
+	id_horario integer references tb_horario(id_horario),
+	id_disciplina integer references tb_disciplina(id_disciplina),
+	id_professor integer references tb_professor(id_professor)
+);
+
+create table tb_turma_matricula(
+	id_turma integer references tb_turma(id_turma),
+	id_matricula integer references tb_matricula(id_matricula),
+	nota numeric(5,2),
+	frequencia numeric(5,2),
+	situacao varchar(60)
+);
+
